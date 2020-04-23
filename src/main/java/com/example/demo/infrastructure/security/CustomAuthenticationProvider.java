@@ -1,5 +1,6 @@
 package com.example.demo.infrastructure.security;
 
+import com.example.demo.X509Utils;
 import com.example.demo.model.Usuario;
 import com.example.demo.service.UserService;
 import lombok.Setter;
@@ -10,7 +11,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
 import java.security.cert.X509Certificate;
-import java.util.Base64;
 import java.util.Optional;
 
 @Slf4j
@@ -25,7 +25,7 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
             return null;
         }
         X509Certificate cert = (X509Certificate) authentication.getCredentials();
-        String chavePublica = Base64.getEncoder().encodeToString(cert.getPublicKey().getEncoded());
+        String chavePublica = X509Utils.getBase64PublicKey(cert);
         log.debug("Chave pública: {}", chavePublica);
         Optional<Usuario> optionalUsuario = userService.findByChavePublica(chavePublica);
         if (optionalUsuario.isPresent()) {
