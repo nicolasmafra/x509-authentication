@@ -14,13 +14,16 @@ openssl req -x509 -new -key cakey.pem -out ca.cer -days 730 -subj '/CN=CA'
 openssl genrsa -out serverkey.pem 2048
 
 # gera um certificado sem assinatura para o servidor
-openssl req -new -key serverkey.pem -out server.csr -subj '/CN=localhost:8080'
+openssl req -new -key serverkey.pem -out server.csr -subj '/CN=localhost'
 
 # usa a CA para assinar o certificado do servidor
 openssl x509 -req -in server.csr -CA ca.cer -CAkey cakey.pem -CAcreateserial -sha256 -days 365 -out server.cer
 
-# junta o certificado com a chave em um p12
-openssl pkcs12 -export -in server.cer -inkey serverkey.pem -out server.p12 -password pass:serverpass
+# concatena o certificado da CA
+cat server.cer ca.cer >> server_chain.pem
+
+# junta a cadeira de certificação com a chave em um p12
+openssl pkcs12 -export -in server_chain.pem -inkey serverkey.pem -out server.p12 -password pass:serverpass
 
 
 
@@ -31,13 +34,16 @@ openssl pkcs12 -export -in server.cer -inkey serverkey.pem -out server.p12 -pass
 openssl genrsa -out clientkey.pem 2048
 
 # gera um certificado sem assinatura para o cliente
-openssl req -new -key clientkey.pem -out client.csr -subj '/CN=localhost:8081'
+openssl req -new -key clientkey.pem -out client.csr -subj '/CN=localhost'
 
 # usa a CA para assinar o certificado do cliente
 openssl x509 -req -in client.csr -CA ca.cer -CAkey cakey.pem -CAserial ca.srl -sha256 -days 365 -out client.cer
 
-# junta o certificado com a chave em um p12
-openssl pkcs12 -export -in client.cer -inkey clientkey.pem -out client.p12 -password pass:clientpass
+# concatena o certificado da CA
+cat client.cer ca.cer >> client_chain.pem
+
+# junta a cadeira de certificação com a chave em um p12
+openssl pkcs12 -export -in client_chain.pem -inkey clientkey.pem -out client.p12 -password pass:clientpass
 
 
 
