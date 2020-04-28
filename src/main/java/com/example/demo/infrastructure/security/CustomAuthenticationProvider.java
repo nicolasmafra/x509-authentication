@@ -1,9 +1,7 @@
 package com.example.demo.infrastructure.security;
 
-import com.example.demo.X509Utils;
-import com.example.demo.model.Usuario;
-import com.example.demo.service.UserService;
-import lombok.Setter;
+import com.example.demo.util.X509Util;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -12,12 +10,13 @@ import org.springframework.security.web.authentication.preauth.PreAuthenticatedA
 
 import java.security.cert.X509Certificate;
 import java.util.Optional;
+import java.util.function.Function;
 
+@RequiredArgsConstructor
 @Slf4j
 public class CustomAuthenticationProvider implements AuthenticationProvider {
 
-    @Setter
-    private UserService userService;
+    private final Function<String, Optional<?>> buscaPorChavePublica;
 
     @Override
     public Authentication authenticate(Authentication authentication) {
@@ -25,21 +24,18 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
             return null;
         }
         X509Certificate cert = (X509Certificate) authentication.getCredentials();
-        String chavePublica = X509Utils.getBase64PublicKey(cert);
-        log.debug("Chave pública: {}", chavePublica);
-        Optional<Usuario> optionalUsuario = userService.findByChavePublica(chavePublica);
-        if (optionalUsuario.isPresent()) {
-            PreAuthenticatedAuthenticationToken preAuth = new PreAuthenticatedAuthenticationToken(
-                    authentication.getPrincipal(),
-                    authentication.getCredentials());
-            preAuth.setAuthenticated(true);
-            preAuth.setDetails(optionalUsuario.get());
-            return preAuth;
-        } else {
-            String message = "Chave pública não cadastrada.";
-            log.info(message);
-            throw new BadCredentialsException(message);
-        }
+        String chavePublica = X509Util.getBase64PublicKey(cert);
+        Object details = buscaPorChavePublica.apply(chavePublica)
+                .orElseThrow(() -> {
+                    log.info("Recebendo chave pública não cadastrada: " + chavePublica);
+                    return new BadCredentialsException("Chave pública não cadastrada.");
+                });
+        PreAuthenticatedAuthenticationToken preAuth = new PreAuthenticatedAuthenticationToken(
+                authentication.getPrincipal(),
+                authentication.getCredentials());
+        preAuth.setAuthenticated(true);
+        preAuth.setDetails(details);
+        return preAuth;
     }
 
     @Override

@@ -38,7 +38,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+    protected void configure(AuthenticationManagerBuilder auth) {
         auth
             .authenticationProvider(customAuthenticationProvider());
     }
@@ -50,9 +50,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     private CustomAuthenticationProvider customAuthenticationProvider() {
-        CustomAuthenticationProvider provider = new CustomAuthenticationProvider();
-        provider.setUserService(userService);
-        return provider;
+        return new CustomAuthenticationProvider(userService::findByChavePublica);
     }
 
 }

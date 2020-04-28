@@ -1,6 +1,6 @@
 package com.example.demo.service;
 
-import com.example.demo.X509Utils;
+import com.example.demo.util.X509Util;
 import com.example.demo.model.Usuario;
 import com.example.demo.model.Usuario_;
 import com.example.demo.repository.UserRepository;
@@ -33,7 +33,7 @@ public class UserService {
         if (authentication.getDetails() instanceof Usuario) {
             return (Usuario) authentication.getDetails();
         } else if (authentication.getCredentials() instanceof X509Certificate) {
-            String chavePublica = X509Utils.getBase64PublicKey((X509Certificate) authentication.getCredentials());
+            String chavePublica = X509Util.getBase64PublicKey((X509Certificate) authentication.getCredentials());
             return findByChavePublica(chavePublica).orElse(null);
         } else {
             return null;

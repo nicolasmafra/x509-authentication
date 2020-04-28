@@ -1,10 +1,10 @@
-package com.example.demo;
+package com.example.demo.util;
 
 import java.security.cert.X509Certificate;
 import java.util.Base64;
 
-public class X509Utils {
-    private X509Utils() {
+public class X509Util {
+    private X509Util() {
     }
 
     public static String getBase64PublicKey(X509Certificate cert) {
